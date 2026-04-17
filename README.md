@@ -8,6 +8,9 @@ An intelligent document-based Q&A system built with Python and Streamlit. This a
 - **OpenRouter LLM Generation**: Uses the OpenAI standard Python SDK to connect seamlessly to OpenRouter models.
 - **Text-to-Speech Accessibility**: Includes Google Text-to-Speech (`gTTS`) inline functionality, allowing conversational output to instantly be read out loud to the user in a native browser audio stream. Supports 9 different output languages!
 
+- **User Authentication**: Secure local user sign-up, login, and profile deletion management powered by SQLite and bcrypt.
+- **Account Recovery**: Uses Python's `smtplib` to dispatch secure One-Time Passwords (OTPs) to users via an SMTP server so they can reset forgotten passwords.
+
 ## Setup and Installation
 
 1. **Install Requirements**
@@ -15,10 +18,17 @@ An intelligent document-based Q&A system built with Python and Streamlit. This a
 pip install -r requirements.txt
 ```
 
-2. **Configure API Key**
-Create a `.env` file in the root directory that contains your OpenRouter API Token:
+2. **Configure Environment Variables**
+Create a `.env` file in the root directory that contains your OpenRouter API Token along with your SMTP variables. 
+The SMTP variables are *optional*, however, if you do not include them, the "Forgot Password" feature will simply print the recovery OTP directly to your terminal console instead of sending an email.
 ```env
 OPENROUTER_API_KEY=your_api_key_here
+
+# Optional: Email SMTP settings for the Forgot Password OTP feature
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_16_character_app_password
 ```
 
 3. **Run the Application**
