@@ -221,6 +221,18 @@ def main():
             </style>
         """, unsafe_allow_html=True)
         st.button(t["new_chat"], help=t["new_chat"], on_click=handle_new_chat, use_container_width=True, type="primary")
+        
+        # Voice Input
+        from streamlit_mic_recorder import speech_to_text
+        voice_input = speech_to_text(
+            language='en', 
+            start_prompt="🎙️ Voice Input", 
+            stop_prompt="⏹️ Stop Recording", 
+            just_once=True, 
+            key='STT', 
+            use_container_width=True
+        )
+        
         if st.button(t["logout"], use_container_width=True):
             st.session_state.clear()
             st.rerun()
@@ -228,7 +240,7 @@ def main():
         if st.button(t["settings"], use_container_width=True):
             st.session_state.show_settings_page = True
             st.rerun()
-        
+            
         st.divider()
         
         api_key = os.getenv("OPENROUTER_API_KEY")
@@ -373,6 +385,9 @@ def main():
     # Input Area
     user_question = st.chat_input(t["ask_question"])
     
+    if voice_input:
+        user_question = voice_input
+        
     if user_question:
         welcome_text.empty()
         

@@ -9,3 +9,5 @@ openai
 gTTS
 bcrypt
 torchvision
+streamlit-mic-recorder
+SpeechRecognition
