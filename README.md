@@ -1,6 +1,27 @@
 # AI-Powered Software Support Chatbot
 
+**Live Demo:** [https://chatbot1327.streamlit.app/](https://chatbot1327.streamlit.app/)
+
 An intelligent document-based Q&A system built with Python and Streamlit. This application allows users to upload PDF, TXT, and DOCX files, processes their contents using locally-hosted FAISS vector caching, and leverages the OpenRouter API to provide highly accurate, context-aware answers to inquiries.
+
+## Screenshots
+
+<details>
+<summary>Click to expand and view screenshots</summary>
+
+### Create Account / Sign Up
+![Signup](assets/signup.png)
+
+### Login
+![Login](assets/login.png)
+
+### Chat Interface
+![Chat Interface](assets/chat.png)
+
+### User Settings
+![Settings](assets/settings.png)
+
+</details>
 
 ## Features
 - **Document Uploader**: Natively extract and chunk data from PDFs, Word files, and plain text formats.
