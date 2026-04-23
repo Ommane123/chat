@@ -159,6 +159,28 @@ def update_password(email, password):
     conn.close()
     return True
 
+def update_user_profile(user_id, new_username, new_password=None):
+    conn = get_connection()
+    c = conn.cursor()
+    
+    try:
+        if new_password:
+            salt = bcrypt.gensalt()
+            password_hash = bcrypt.hashpw(new_password.encode('utf-8'), salt).decode('utf-8')
+            c.execute('UPDATE users SET username = ?, password_hash = ? WHERE id = ?', 
+                      (new_username, password_hash, user_id))
+        else:
+            c.execute('UPDATE users SET username = ? WHERE id = ?', 
+                      (new_username, user_id))
+        conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        # Username might already exist
+        return False
+    finally:
+        conn.close()
+
+
 def delete_user_account(user_id):
     conn = get_connection()
     c = conn.cursor()
