@@ -29,3 +29,7 @@ Thumbs.db
 # Audio caches / temporary files
 *.mp3
 *.wav
+
+# Uploaded/Test Documents
+*.pdf
+*.docx
