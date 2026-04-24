@@ -38,10 +38,17 @@ def init_db():
         CREATE TABLE IF NOT EXISTS chat_sessions (
             session_id TEXT PRIMARY KEY,
             user_id INTEGER NOT NULL,
+            title TEXT DEFAULT 'New Chat',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
+    
+    # Backward compatibility: add title column if it doesn't exist
+    try:
+        c.execute('ALTER TABLE chat_sessions ADD COLUMN title TEXT DEFAULT "New Chat"')
+    except sqlite3.OperationalError:
+        pass # Column already exists
     
     # Create chat messages table
     c.execute('''
@@ -205,14 +212,14 @@ def delete_user_account(user_id):
 
 # --- History Functions ---
 
-def create_chat_session(user_id, session_id):
+def create_chat_session(user_id, session_id, title="New Chat"):
     conn = get_connection()
     c = conn.cursor()
     
     # Check if exists (e.g. from handle_new_chat multiple clicks)
     c.execute('SELECT session_id FROM chat_sessions WHERE session_id = ?', (session_id,))
     if c.fetchone() is None:
-        c.execute('INSERT INTO chat_sessions (session_id, user_id) VALUES (?, ?)', (session_id, user_id))
+        c.execute('INSERT INTO chat_sessions (session_id, user_id, title) VALUES (?, ?, ?)', (session_id, user_id, title))
         conn.commit()
     conn.close()
 
@@ -222,6 +229,13 @@ def delete_chat_session(session_id):
     c.execute('PRAGMA foreign_keys = ON') # Enable cascading deletes if needed, though we delete messages explicitly below just in case
     c.execute('DELETE FROM chat_messages WHERE session_id = ?', (session_id,))
     c.execute('DELETE FROM chat_sessions WHERE session_id = ?', (session_id,))
+    conn.commit()
+    conn.close()
+
+def rename_chat_session(session_id, new_title):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute('UPDATE chat_sessions SET title = ? WHERE session_id = ?', (new_title, session_id))
     conn.commit()
     conn.close()
 
@@ -237,8 +251,8 @@ def get_user_sessions(user_id):
     c = conn.cursor()
     
     # Get all session ids
-    c.execute('SELECT session_id FROM chat_sessions WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
-    sessions = [row[0] for row in c.fetchall()]
+    c.execute('SELECT session_id, title FROM chat_sessions WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
+    sessions = [{"session_id": row[0], "title": row[1] if row[1] else "New Chat"} for row in c.fetchall()]
     
     conn.close()
     return sessions

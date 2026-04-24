@@ -8,7 +8,7 @@ load_dotenv()
 
 from src.document_processor import process_uploaded_files
 from src.embedding_store import create_vector_store
-from src.chatbot import get_answer
+from src.chatbot import get_context_and_stream
 from src.theme_manager import set_streamlit_theme
 from src.database import update_user_profile
 
@@ -169,6 +169,8 @@ def init_session_state():
         st.session_state.app_language = "English"
     if "app_theme" not in st.session_state:
         st.session_state.app_theme = "Dark" # Default or maybe read from config
+    if "app_persona" not in st.session_state:
+        st.session_state.app_persona = "Professional"
 
 def toggle_read_aloud():
     st.session_state.read_aloud = not st.session_state.read_aloud
@@ -280,24 +282,36 @@ def main():
                             
         st.divider()
         st.subheader(t["history"])
-        from src.database import get_user_sessions, get_session_messages, delete_chat_session
+        from src.database import get_user_sessions, get_session_messages, delete_chat_session, rename_chat_session
         sessions = get_user_sessions(st.session_state.user["id"])
         
         if not sessions:
             st.info(t["no_past_chats"])
             
-        for session_id in sessions:
-            messages = get_session_messages(session_id)
-            first_msg = messages[0]["content"] if messages else t["empty_chat"]
-            col_a, col_b = st.columns([0.8, 0.2])
+        for session in sessions:
+            session_id = session["session_id"]
+            title = session["title"]
+            
+            # Fallback to first message text if title is default
+            if title == "New Chat":
+                messages = get_session_messages(session_id)
+                title = f"{messages[0]['content'][:25]}..." if messages else t["empty_chat"]
+                
+            col_a, col_b, col_c = st.columns([0.6, 0.2, 0.2])
             with col_a:
-                if st.button(f"{first_msg[:25]}...", key=f"load_{session_id}", use_container_width=True):
+                if st.button(title, key=f"load_{session_id}", use_container_width=True):
                     st.session_state.current_session_id = session_id
-                    st.session_state.chat_history = messages
+                    st.session_state.chat_history = get_session_messages(session_id)
                     st.session_state.vector_store = None
                     st.session_state.show_settings_page = False
                     st.rerun()
             with col_b:
+                with st.popover("✏️"):
+                    new_title = st.text_input("New name", value=title, key=f"ren_{session_id}")
+                    if st.button("Save", key=f"btn_ren_{session_id}", type="primary"):
+                        rename_chat_session(session_id, new_title)
+                        st.rerun()
+            with col_c:
                 if st.button("🗑️", key=f"del_{session_id}"):
                     delete_chat_session(session_id)
                     if st.session_state.current_session_id == session_id:
@@ -340,6 +354,14 @@ def main():
                 set_streamlit_theme(selected_theme)
                 st.rerun()
             
+            st.subheader("Chatbot Persona")
+            persona_opts = ["Professional", "Explain Like I'm 5", "Summary Mode"]
+            persona_idx = persona_opts.index(st.session_state.app_persona) if st.session_state.app_persona in persona_opts else 0
+            selected_persona = st.selectbox("Persona", persona_opts, index=persona_idx, label_visibility="collapsed")
+            if selected_persona != st.session_state.app_persona:
+                st.session_state.app_persona = selected_persona
+                st.rerun()
+                
             st.subheader(t["language"])
             lang_opts = ["English", "Hindi", "Marathi"]
             lang_idx = lang_opts.index(st.session_state.app_language) if st.session_state.app_language in lang_opts else 0
@@ -397,7 +419,7 @@ def main():
             
         # Display user message
         from src.database import save_message, create_chat_session
-        create_chat_session(st.session_state.user["id"], st.session_state.current_session_id)
+        create_chat_session(st.session_state.user["id"], st.session_state.current_session_id, f"{user_question[:25]}...")
         
         st.session_state.chat_history.append({"role": "user", "content": user_question})
         save_message(st.session_state.current_session_id, "user", user_question)
@@ -406,52 +428,56 @@ def main():
         
         # Generate response
         with st.chat_message("assistant"):
-            with st.spinner(t["thinking"]):
-                try:
-                    response = get_answer(
-                        vector_store=st.session_state.vector_store,
-                        user_question=user_question,
-                        api_key=api_key,
-                        chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
-                        target_language=target_language
-                    )
-                    answer = response.get("answer", "Sorry, I could not generate an answer.")
-                    
+            try:
+                response = get_context_and_stream(
+                    vector_store=st.session_state.vector_store,
+                    user_question=user_question,
+                    api_key=api_key,
+                    chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
+                    target_language=target_language,
+                    persona=st.session_state.app_persona
+                )
+                
+                if "answer" in response:
+                    answer = response["answer"]
                     st.markdown(answer)
-                    
-                    if st.session_state.read_aloud:
-                        try:
-                            lang_codes = {
-                                "English": "en", "Hindi": "hi", "Marathi": "mr", 
-                                "Gujarati": "gu", "Bengali": "bn", "Spanish": "es", 
-                                "French": "fr", "German": "de", "Japanese": "ja"
-                            }
-                            code = lang_codes.get(target_language, "en")
-                            tts = gTTS(text=answer, lang=code, slow=False)
-                            audio_fp = BytesIO()
-                            tts.write_to_fp(audio_fp)
-                            audio_fp.seek(0)
+                else:
+                    stream = response["stream"]
+                    answer = st.write_stream(stream)
+                
+                if st.session_state.read_aloud:
+                    try:
+                        lang_codes = {
+                            "English": "en", "Hindi": "hi", "Marathi": "mr", 
+                            "Gujarati": "gu", "Bengali": "bn", "Spanish": "es", 
+                            "French": "fr", "German": "de", "Japanese": "ja"
+                        }
+                        code = lang_codes.get(target_language, "en")
+                        tts = gTTS(text=answer, lang=code, slow=False)
+                        audio_fp = BytesIO()
+                        tts.write_to_fp(audio_fp)
+                        audio_fp.seek(0)
+                        
+                        import base64
+                        audio_b64 = base64.b64encode(audio_fp.read()).decode("utf-8")
+                        # HTML audio element without 'controls' attribute hides the player
+                        audio_html = f'<audio autoplay src="data:audio/mp3;base64,{audio_b64}"></audio>'
+                        st.markdown(audio_html, unsafe_allow_html=True)
+                    except Exception as tts_e:
+                        st.error(f"Text-to-Speech failed: {tts_e}")
+                        
+                # Expandable sources
+                if "source_documents" in response and response["source_documents"]:
+                    with st.expander(t["references"]):
+                        for i, doc in enumerate(response["source_documents"]):
+                            st.write(f"**{t['source']} {i+1}:**")
+                            st.info(doc[:300] + "...")
                             
-                            import base64
-                            audio_b64 = base64.b64encode(audio_fp.read()).decode("utf-8")
-                            # HTML audio element without 'controls' attribute hides the player
-                            audio_html = f'<audio autoplay src="data:audio/mp3;base64,{audio_b64}"></audio>'
-                            st.markdown(audio_html, unsafe_allow_html=True)
-                        except Exception as tts_e:
-                            st.error(f"Text-to-Speech failed: {tts_e}")
-                            
-                    # Expandable sources
-                    if "source_documents" in response and response["source_documents"]:
-                        with st.expander(t["references"]):
-                            for i, doc in enumerate(response["source_documents"]):
-                                st.write(f"**{t['source']} {i+1}:**")
-                                st.info(doc[:300] + "...")
-                                
-                    # Save assistant message
-                    st.session_state.chat_history.append({"role": "assistant", "content": answer})
-                    save_message(st.session_state.current_session_id, "assistant", answer)
-                except Exception as e:
-                    st.error(f"Generation error: {e}")
+                # Save assistant message
+                st.session_state.chat_history.append({"role": "assistant", "content": answer})
+                save_message(st.session_state.current_session_id, "assistant", answer)
+            except Exception as e:
+                st.error(f"Generation error: {e}")
 
 if __name__ == "__main__":
     main()
