@@ -162,7 +162,8 @@ def init_session_state():
             st.session_state.chat_history = []
             
     if "vector_store" not in st.session_state:
-        st.session_state.vector_store = None
+        from src.embedding_store import load_vector_store
+        st.session_state.vector_store = load_vector_store("vector_db")
     if "read_aloud" not in st.session_state:
         st.session_state.read_aloud = False
     if "app_language" not in st.session_state:
