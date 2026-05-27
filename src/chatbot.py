@@ -34,6 +34,7 @@ def get_context_and_stream(user_question, chat_history, target_language="English
     client = OpenAI(
         base_url=api_base_url,
         api_key="none", # Key is usually ignored for self-hosted
+        default_headers={"Bypass-Tunnel-Reminder": "true"} # Required to bypass localtunnel's warning screen
     )
     
     stream = client.chat.completions.create(
