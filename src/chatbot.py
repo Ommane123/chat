@@ -30,6 +30,8 @@ def get_context_and_stream(user_question, chat_history, target_language="English
     # Call Ollama/Global API natively
     # Use environment variable for the URL so it can be configured on Streamlit Cloud
     api_base_url = os.getenv("GLOBAL_LLM_URL", "http://localhost:11434/v1")
+    if not api_base_url.endswith("/v1") and not api_base_url.endswith("/v1/"):
+        api_base_url = api_base_url.rstrip("/") + "/v1"
     
     client = OpenAI(
         base_url=api_base_url,
