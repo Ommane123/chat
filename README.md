@@ -59,11 +59,11 @@ If you are hosting this application on the public internet (like Streamlit Cloud
 
 Open a new terminal window and run:
 ```bash
-npx -y localtunnel --port 11434 --local-host localhost
+npx -y cloudflared tunnel --http-host-header localhost --url http://localhost:11434
 ```
-It will print a public URL (e.g., `https://random-words.loca.lt`). Copy this URL, go to your Streamlit Cloud app settings, and add it to your Secrets:
+It will print a bunch of text. Look for the URL that ends in `.trycloudflare.com` (e.g., `https://random-words.trycloudflare.com`). Copy this URL, go to your Streamlit Cloud app settings, and add it to your Secrets:
 ```env
-GLOBAL_LLM_URL="https://random-words.loca.lt/v1"
+GLOBAL_LLM_URL="https://random-words.trycloudflare.com/v1"
 ```
 *(Note: Every time you restart your computer or the tunnel closes, you must run this command again and update your Streamlit Cloud secret with the new URL.)*
 
