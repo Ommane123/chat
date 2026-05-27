@@ -2,7 +2,7 @@
 
 **Live Demo:** [https://chatbot1327.streamlit.app/](https://chatbot1327.streamlit.app/)
 
-An intelligent document-based Q&A system built with Python and Streamlit. This application allows users to upload PDF, TXT, and DOCX files, processes their contents using locally-hosted FAISS vector caching, and leverages a self-hosted global LLM (via Ollama) to provide highly accurate, context-aware answers to inquiries.
+An intelligent customer support Q&A system built with Python and Streamlit. This application leverages a self-hosted global LLM (via Ollama) to provide highly accurate, context-aware answers to inquiries, powered entirely by a specialized fine-tuned model.
 
 ## Screenshots
 
@@ -24,11 +24,9 @@ An intelligent document-based Q&A system built with Python and Streamlit. This a
 </details>
 
 ## Features
-- **Document Uploader**: Natively extract and chunk data from PDFs, Word files, and plain text formats.
-- **RAG Architecture**: Uses `sentence-transformers` for embedding tracking and `faiss-cpu` for extremely fast local similarity searches.
+- **Direct LLM Architecture**: Connects directly to fine-tuned support models for instant answers without document processing overhead.
 - **Ollama LLM Generation**: Uses the OpenAI standard Python SDK to connect seamlessly to your local Ollama instances (like a fine-tuned `supportbot` model).
 - **Text-to-Speech Accessibility**: Includes Google Text-to-Speech (`gTTS`) inline functionality, allowing conversational output to instantly be read out loud to the user in a native browser audio stream. Supports 9 different output languages!
-
 - **User Authentication**: Secure local user sign-up, login, and profile deletion management powered by SQLite and bcrypt.
 - **Account Recovery**: Uses Python's `smtplib` to dispatch secure One-Time Passwords (OTPs) to users via an SMTP server so they can reset forgotten passwords.
 

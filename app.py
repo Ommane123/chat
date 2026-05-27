@@ -6,8 +6,6 @@ from io import BytesIO
 
 load_dotenv()
 
-from src.document_processor import process_uploaded_files
-from src.embedding_store import create_vector_store
 from src.chatbot import get_context_and_stream
 from src.theme_manager import set_streamlit_theme
 from src.database import update_user_profile
@@ -17,7 +15,7 @@ TRANSLATIONS = {
         "title": "🤖 AI-Powered Software Support Chatbot",
         "response_language": "Response Language",
         "toggle_read_aloud": "Toggle Read Aloud",
-        "welcome_desc": "Upload your documentation and ask questions based on its content.",
+        "welcome_desc": "Hello! I am your AI Customer Support agent. How can I help you today?",
         "new_chat": "➕ New Chat",
         "logout": "🚪 Logout",
         "settings": "⚙️ Settings",
@@ -26,7 +24,7 @@ TRANSLATIONS = {
         "process_docs": "Process Documents",
         "history": "📜 History",
         "no_past_chats": "No past chats available.",
-        "ask_question": "Ask a question about your documents:",
+        "ask_question": "Ask a customer support question...",
         "thinking": "Thinking...",
         "please_upload": "Please upload and process documents with a valid OpenRouter token before asking questions.",
         "error_no_token": "Please provide an OpenRouter API Token first.",
@@ -62,7 +60,7 @@ TRANSLATIONS = {
         "title": "🤖 AI-संचलित सॉफ्टवेअर सपोर्ट चॅटबॉट",
         "response_language": "प्रतिसादाची भाषा",
         "toggle_read_aloud": "वाचन टॉगल करा",
-        "welcome_desc": "तुमची कागदपत्रे अपलोड करा आणि त्याच्या आधारावर प्रश्न विचारा.",
+        "welcome_desc": "नमस्कार! मी तुमचा एआय ग्राहक समर्थन एजंट आहे. मी तुम्हाला कशी मदत करू शकतो?",
         "new_chat": "➕ नवीन चॅट",
         "logout": "🚪 लॉगआउट",
         "settings": "⚙️ सेटिंग्ज",
@@ -71,7 +69,7 @@ TRANSLATIONS = {
         "process_docs": "कागदपत्रांवर प्रक्रिया करा",
         "history": "📜 इतिहास",
         "no_past_chats": "कोणतेही जुने चॅट्स उपलब्ध नाहीत.",
-        "ask_question": "तुमच्या कागदपत्रांबद्दल एक प्रश्न विचारा:",
+        "ask_question": "ग्राहक समर्थन प्रश्न विचारा...",
         "thinking": "विचार करत आहे...",
         "please_upload": "कृपया प्रश्न विचारण्यापूर्वी वैध OpenRouter टोकनसह कागदपत्रे अपलोड करा.",
         "error_no_token": "कृपया प्रथम OpenRouter API टोकन द्या.",
@@ -107,7 +105,7 @@ TRANSLATIONS = {
         "title": "🤖 AI-संचालित सॉफ्टवेयर सपोर्ट चैटबॉट",
         "response_language": "प्रतिक्रिया की भाषा",
         "toggle_read_aloud": "पढ़ना टॉगल करें",
-        "welcome_desc": "अपने दस्तावेज़ अपलोड करें और उसके आधार पर प्रश्न पूछें।",
+        "welcome_desc": "नमस्ते! मैं आपका एआई ग्राहक सहायता एजेंट हूं। मैं आपकी कैसे मदद कर सकता हूं?",
         "new_chat": "➕ नई चैट",
         "logout": "🚪 लॉगआउट",
         "settings": "⚙️ सेटिंग्स",
@@ -116,7 +114,7 @@ TRANSLATIONS = {
         "process_docs": "दस्तावेज़ संसाधित करें",
         "history": "📜 इतिहास",
         "no_past_chats": "कोई पिछली चैट उपलब्ध नहीं है।",
-        "ask_question": "अपने दस्तावेज़ों के बारे में एक प्रश्न पूछें:",
+        "ask_question": "ग्राहक सहायता प्रश्न पूछें...",
         "thinking": "सोच रहा है...",
         "please_upload": "कृपया प्रश्न पूछने से पहले वैध OpenRouter टोकन के साथ दस्तावेज़ अपलोड करें।",
         "error_no_token": "कृपया पहले OpenRouter API टोकन प्रदान करें।",
@@ -161,9 +159,6 @@ def init_session_state():
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
             
-    if "vector_store" not in st.session_state:
-        from src.embedding_store import load_vector_store
-        st.session_state.vector_store = load_vector_store("vector_db")
     if "read_aloud" not in st.session_state:
         st.session_state.read_aloud = False
     if "app_language" not in st.session_state:
@@ -180,7 +175,6 @@ def handle_new_chat():
     import uuid
     st.session_state.current_session_id = str(uuid.uuid4())
     st.session_state.chat_history = []
-    st.session_state.vector_store = None
     st.session_state.show_settings_page = False
 
 def main():
@@ -245,39 +239,6 @@ def main():
             st.rerun()
             
         st.divider()
-        
-        st.subheader(t["your_documents"])
-        uploaded_files = st.file_uploader(
-            t["upload_desc"], 
-            type=["pdf", "txt", "docx"], 
-            accept_multiple_files=True,
-            key=f"file_uploader_{st.session_state.current_session_id}"
-        )
-        
-        process_button = st.button(t["process_docs"])
-        
-        if process_button:
-            if not uploaded_files:
-                st.error(t["error_no_docs"])
-            else:
-                with st.spinner(t["thinking"]):
-                    # 1. Process and chunk
-                    text_chunks = process_uploaded_files(uploaded_files)
-                    if not text_chunks:
-                        st.error(t["error_no_text"])
-                    else:
-                        st.success(t["success_processed"].format(len(text_chunks)))
-                        
-                        # 2. Embed and store
-                        vector_store = create_vector_store(text_chunks)
-                        if vector_store:
-                            st.session_state.vector_store = vector_store
-                            st.success(t["success_stored"])
-                            st.success(t["success_ready"])
-                        else:
-                            st.error(t["error_vector"])
-                            
-        st.divider()
         st.subheader(t["history"])
         from src.database import get_user_sessions, get_session_messages, delete_chat_session, rename_chat_session
         sessions = get_user_sessions(st.session_state.user["id"])
@@ -299,7 +260,6 @@ def main():
                 if st.button(title, key=f"load_{session_id}", use_container_width=True):
                     st.session_state.current_session_id = session_id
                     st.session_state.chat_history = get_session_messages(session_id)
-                    st.session_state.vector_store = None
                     st.session_state.show_settings_page = False
                     st.rerun()
             with col_b:
@@ -315,7 +275,6 @@ def main():
                         st.session_state.chat_history = []
                         import uuid
                         st.session_state.current_session_id = str(uuid.uuid4())
-                        st.session_state.vector_store = None
                     st.rerun()
             st.markdown("---")
 
@@ -410,10 +369,6 @@ def main():
     if user_question:
         welcome_text.empty()
         
-        if st.session_state.vector_store is None:
-            st.warning(t["please_upload"])
-            st.stop()
-            
         # Display user message
         from src.database import save_message, create_chat_session
         create_chat_session(st.session_state.user["id"], st.session_state.current_session_id, f"{user_question[:25]}...")
@@ -427,7 +382,6 @@ def main():
         with st.chat_message("assistant"):
             try:
                 response = get_context_and_stream(
-                    vector_store=st.session_state.vector_store,
                     user_question=user_question,
                     chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
                     target_language=target_language,
@@ -462,13 +416,7 @@ def main():
                     except Exception as tts_e:
                         st.error(f"Text-to-Speech failed: {tts_e}")
                         
-                # Expandable sources
-                if "source_documents" in response and response["source_documents"]:
-                    with st.expander(t["references"]):
-                        for i, doc in enumerate(response["source_documents"]):
-                            st.write(f"**{t['source']} {i+1}:**")
-                            st.info(doc[:300] + "...")
-                            
+
                 # Save assistant message
                 st.session_state.chat_history.append({"role": "assistant", "content": answer})
                 save_message(st.session_state.current_session_id, "assistant", answer)

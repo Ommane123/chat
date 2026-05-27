@@ -1,13 +1,7 @@
 streamlit
-faiss-cpu
-pypdf
-python-docx
-docx2txt
 python-dotenv
-sentence-transformers
 openai
 gTTS
 bcrypt
-torchvision
 streamlit-mic-recorder
 SpeechRecognition
