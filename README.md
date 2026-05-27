@@ -52,6 +52,8 @@ SMTP_PASS=your_16_character_app_password
 
 3. **Start Ollama**
 Ensure you have Ollama running in the background with your chosen model. For example:
+
+Check ollama installation guide in ai model folder also check how to integrate our mistral model into ollama.
 ```bash
 ollama run supportbot
 ```

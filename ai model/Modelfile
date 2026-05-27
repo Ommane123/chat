@@ -1,0 +1,5 @@
+
+FROM mistral-7b-instruct-v0.2.Q4_K_M.gguf
+TEMPLATE """[INST] {{ if .System }}{{ .System }} {{ end }}{{ .Prompt }} [/INST]"""
+PARAMETER stop "[INST]"
+PARAMETER stop "[/INST]"

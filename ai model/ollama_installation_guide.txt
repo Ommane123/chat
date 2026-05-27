@@ -1,0 +1,142 @@
+
+OLLAMA + CUSTOM LLM INSTALLATION GUIDE
+=====================================
+
+STEP 1 — INSTALL OLLAMA
+-----------------------
+
+1. Go to:
+https://ollama.com/download
+
+2. Download Ollama for your operating system:
+- Windows
+- MacOS
+- Linux
+
+3. Install normally.
+
+4. Verify installation.
+
+Open terminal / command prompt and run:
+
+    ollama --version
+
+If installed correctly, it will show the version number.
+
+
+STEP 2 — PLACE YOUR GGUF MODEL
+------------------------------
+
+Create a folder anywhere on your PC.
+
+Example:
+
+    supportbot/
+
+copy-paste Inside that folder place:
+
+1. Your GGUF model file:
+   mistral-7b-instruct-v0.2.Q4_K_M.gguf
+
+2. A file named:
+   Modelfile
+
+--------------------------------------------------
+
+
+STEP 3 — OPEN TERMINAL IN THE FOLDER
+------------------------------------
+
+Open terminal or command prompt inside the supportbot folder.
+
+Example path:
+
+    C:\Users\YourName\supportbot
+
+OR on Linux/Mac:
+
+    ~/supportbot
+
+
+STEP 4 — CREATE THE OLLAMA MODEL
+--------------------------------
+
+Run:
+
+    ollama create supportbot -f Modelfile
+
+This may take a few minutes.
+
+If successful, you will see messages showing the model was created.
+
+
+STEP 5 — RUN THE MODEL
+----------------------
+
+Run:
+
+    ollama run supportbot
+
+Now you can chat with your model locally.
+
+
+STEP 6 — TEST PROMPTS
+---------------------
+
+Example prompts:
+
+    How do I reset my password?
+
+    My application crashes during startup.
+
+    I cannot login to my account.
+
+    How can I install the software?
+
+
+STEP 7 — CHECK INSTALLED MODELS
+-------------------------------
+
+Run:
+
+    ollama list
+
+
+STEP 8 — run MODEL (OPTIONAL)
+--------------------------------
+
+Run:
+
+    ollama rm supportbot
+
+
+
+IMPORTANT NOTES
+---------------
+
+1. Keep Ollama running while using the chatbot.
+
+2. The first response may take longer while model loads into RAM.
+
+3. Recommended system:
+   - 16GB RAM or more
+   - SSD storage
+   - Modern CPU
+
+4. Internet is NOT required after setup.
+
+5. Your fine-tuned model is completely private and local.
+
+
+PROJECT ARCHITECTURE
+--------------------
+
+User
+ ↓
+Streamlit Chatbot
+ ↓
+FAISS Retrieval
+ ↓
+Fine-Tuned Mistral via Ollama
+ ↓
+Response
