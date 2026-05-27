@@ -71,3 +71,22 @@ GLOBAL_LLM_URL="https://random-words.loca.lt/v1"
 ```bash
 streamlit run app.py
 ```
+-----------------------------------
+
+1. Start Ollama Open a terminal and run:
+
+command :
+
+ollama serve
+(This boots up your local AI).
+
+2. Start the Tunnel Open a second terminal window and run:
+
+command :
+
+npx -y localtunnel --port 11434 --local-host localhost
+(This creates the secure bridge from your PC to the internet).
+
+3. Update Streamlit Cloud Copy the new https://... link that Localtunnel prints out, go to your Streamlit Cloud app settings, and paste it into your Secrets as GLOBAL_LLM_URL = "https://your-new-link.loca.lt/v1".
+
+That's it! As long as those two terminals are running on your computer, anyone in the world can go to your Streamlit Cloud website and get instant, high-quality answers from your fine-tuned supportbot!
