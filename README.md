@@ -71,22 +71,28 @@ GLOBAL_LLM_URL="https://random-words.trycloudflare.com/v1"
 ```bash
 streamlit run app.py
 ```
------------------------------------
+---
 
-1. Start Ollama Open a terminal and run:
+## Quick Start (Daily Routine)
 
-command :
+To get your application back online every time you restart your computer, follow these 3 simple steps:
 
-ollama serve
-(This boots up your local AI).
+1. **Start Ollama**  
+   Open a terminal and run:
+   ```bash
+   ollama serve
+   ```
 
-2. Start the Tunnel Open a second terminal window and run:
+2. **Start the Tunnel**  
+   Open a second terminal window and run:
+   ```bash
+   npx -y cloudflared tunnel --http-host-header localhost --url http://localhost:11434
+   ```
 
-command :
-
-npx -y localtunnel --port 11434 --local-host localhost
-(This creates the secure bridge from your PC to the internet).
-
-3. Update Streamlit Cloud Copy the new https://... link that Localtunnel prints out, go to your Streamlit Cloud app settings, and paste it into your Secrets as GLOBAL_LLM_URL = "https://your-new-link.loca.lt/v1".
+3. **Update Streamlit Cloud**  
+   Copy the new `https://...trycloudflare.com` link that is printed in your terminal, go to your Streamlit Cloud app settings, and paste it into your Secrets as:
+   ```env
+   GLOBAL_LLM_URL = "https://your-new-link.trycloudflare.com/v1"
+   ```
 
 That's it! As long as those two terminals are running on your computer, anyone in the world can go to your Streamlit Cloud website and get instant, high-quality answers from your fine-tuned supportbot!
