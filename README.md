@@ -52,13 +52,24 @@ SMTP_PASS=your_16_character_app_password
 
 3. **Start Ollama**
 Ensure you have Ollama running in the background with your chosen model. For example:
-
-Check ollama installation guide in ai model folder also check how to integrate our mistral model into ollama.
 ```bash
 ollama run supportbot
 ```
 
-4. **Run the Application**
+4. **Connect to Streamlit Cloud (Global LLM Access)**
+If you are hosting this application on the public internet (like Streamlit Cloud) but running Ollama locally on your computer, you need to securely tunnel your local AI to the cloud server. 
+
+Open a new terminal window and run:
+```bash
+npx -y localtunnel --port 11434
+```
+It will print a public URL (e.g., `https://random-words.loca.lt`). Copy this URL, go to your Streamlit Cloud app settings, and add it to your Secrets:
+```env
+GLOBAL_LLM_URL="https://random-words.loca.lt/v1"
+```
+*(Note: Every time you restart your computer or the tunnel closes, you must run this command again and update your Streamlit Cloud secret with the new URL.)*
+
+5. **Run the Application (Locally)**
 ```bash
 streamlit run app.py
 ```
