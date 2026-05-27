@@ -59,7 +59,7 @@ If you are hosting this application on the public internet (like Streamlit Cloud
 
 Open a new terminal window and run:
 ```bash
-npx -y localtunnel --port 11434
+npx -y localtunnel --port 11434 --local-host localhost
 ```
 It will print a public URL (e.g., `https://random-words.loca.lt`). Copy this URL, go to your Streamlit Cloud app settings, and add it to your Secrets:
 ```env
