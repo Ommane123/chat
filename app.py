@@ -246,8 +246,6 @@ def main():
             
         st.divider()
         
-        api_key = os.getenv("OPENROUTER_API_KEY")
-        
         st.subheader(t["your_documents"])
         uploaded_files = st.file_uploader(
             t["upload_desc"], 
@@ -259,9 +257,7 @@ def main():
         process_button = st.button(t["process_docs"])
         
         if process_button:
-            if not api_key:
-                st.error(t["error_no_token"])
-            elif not uploaded_files:
+            if not uploaded_files:
                 st.error(t["error_no_docs"])
             else:
                 with st.spinner(t["thinking"]):
@@ -433,7 +429,6 @@ def main():
                 response = get_context_and_stream(
                     vector_store=st.session_state.vector_store,
                     user_question=user_question,
-                    api_key=api_key,
                     chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
                     target_language=target_language,
                     persona=st.session_state.app_persona

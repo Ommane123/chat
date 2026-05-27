@@ -33,3 +33,5 @@ Thumbs.db
 # Uploaded/Test Documents
 *.pdf
 *.docx
+vector_db/
+company_docx/

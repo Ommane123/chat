@@ -2,12 +2,10 @@ import os
 import numpy as np
 from openai import OpenAI
 
-def get_context_and_stream(vector_store, user_question, api_key, chat_history, target_language="English", persona="Professional"):
+def get_context_and_stream(vector_store, user_question, chat_history, target_language="English", persona="Professional"):
     """
-    Retrieves context using native FAISS and queries OpenRouter API with streaming.
+    Retrieves context using native FAISS and queries Ollama API with streaming.
     """
-    if not api_key:
-        return {"answer": "Please provide an OpenRouter API Token.", "source_documents": []}
         
     # Extract native store components
     index = vector_store["index"]
@@ -49,16 +47,17 @@ def get_context_and_stream(vector_store, user_question, api_key, chat_history, t
     for msg in chat_history:
         messages.append({"role": msg["role"], "content": msg["content"]})
         
-    messages.append({"role": "user", "content": user_question})
+    # 5. Call Ollama/Global API natively
+    # Use environment variable for the URL so it can be configured on Streamlit Cloud
+    api_base_url = os.getenv("GLOBAL_LLM_URL", "http://localhost:11434/v1")
     
-    # 5. Call OpenRouter API natively
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=api_key,
+        base_url=api_base_url,
+        api_key="none", # Key is usually ignored for self-hosted
     )
     
     stream = client.chat.completions.create(
-        model="openai/gpt-oss-120b:free",
+        model="supportbot",
         messages=messages,
         temperature=0.3,
         max_tokens=512,
