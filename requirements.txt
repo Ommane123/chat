@@ -5,3 +5,4 @@ gTTS
 bcrypt
 streamlit-mic-recorder
 SpeechRecognition
+deep-translator

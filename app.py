@@ -381,12 +381,25 @@ def main():
         # Generate response
         with st.chat_message("assistant"):
             try:
-                response = get_context_and_stream(
-                    user_question=user_question,
-                    chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
-                    target_language=target_language,
-                    persona=st.session_state.app_persona
-                )
+                if target_language != "English":
+                    with st.status("Processing multi-language request...", expanded=True) as status_box:
+                        def update_status(text):
+                            status_box.write(f"⏳ {text}")
+                        response = get_context_and_stream(
+                            user_question=user_question,
+                            chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
+                            target_language=target_language,
+                            persona=st.session_state.app_persona,
+                            status_callback=update_status
+                        )
+                        status_box.update(label="Translation complete!", state="complete", expanded=False)
+                else:
+                    response = get_context_and_stream(
+                        user_question=user_question,
+                        chat_history=st.session_state.chat_history[:-1],  # Exclude current question 
+                        target_language=target_language,
+                        persona=st.session_state.app_persona
+                    )
                 
                 if "answer" in response:
                     answer = response["answer"]
